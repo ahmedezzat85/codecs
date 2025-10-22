@@ -195,6 +195,11 @@ jobs:
           name: Authenticate with NPM registry
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/repo/.npmrc
       #
+      # Verify authentication with npm registry
+      - run:
+          name: Verify NPM authentication
+          command: npm whoami
+      #
       # This step is configured in `/lerna.json`.
       # Only runs on `main` branch. Walks all commits since last tagged release.
       # Determines, based on commit syntax and files changed, what each packages new

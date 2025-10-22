@@ -13,7 +13,7 @@ This library is a JavaScript port made possible by [emscripten](https://emscript
 
 ## Installing
 
-Using npm: 
+Using npm
 
 ```bash
 $ npm install @cornerstonejs/openjpegjs
