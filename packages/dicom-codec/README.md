@@ -16,7 +16,7 @@ DICOM Codecs for JavaScript (browser and node support).
 | HTJ2K             	| 1.2.840.10008.1.2.202 (201,203 as well)                      	|    X   	|    X   	|        X        	|       X       	|
 
 ### Next releases planning
-v0.0.11: support for LibjpegTurbo12Bit.
+v0.0.11: support for LibjpegTurbo12Bit
 v.0.0.12 support for encoding options.
 v1.0.0: support for browser (dynamic loading included) and node.
 
