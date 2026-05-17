@@ -23,6 +23,10 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Init git submodules
+        working-directory: packages/openjpeg
+        run: git submodule update --init --recursive
+
       - name: Set up Emscripten SDK
         uses: mymindstorm/setup-emsdk@v14
         with:
@@ -40,7 +44,7 @@ jobs:
           mkdir -p build
           mkdir -p dist
 
-          echo "~~~ CONFIGURE #1 (first run may fail — expected) ~~~"
+          echo "~~~ CONFIGURE #1 (first run may fail - expected) ~~~"
           (cd build && emcmake cmake .. || true)
 
           echo "~~~ CONFIGURE #2 ~~~"
@@ -49,26 +53,24 @@ jobs:
           echo "~~~ MAKE ~~~"
           (cd build && emmake make VERBOSE=1 -j4)
 
-          echo "~~~ BUILD tree (src/) ~~~"
-          ls -lh build/src/ || echo "build/src/ not found"
+          echo "~~~ BUILD tree ~~~"
+          ls -lh build/extern/openjpeg/bin/ || echo "WARNING: build/extern/openjpeg/bin/ not found"
 
-          echo "~~~ COPY artifacts from build/src/ ~~~"
-          # CMake targets defined in src/CMakeLists.txt output here:
-          cp build/src/openjpegjs.js            dist/ 2>/dev/null && echo "copied openjpegjs.js"            || echo "SKIP openjpegjs.js"
-          cp build/src/openjpegjs.js.mem         dist/ 2>/dev/null && echo "copied openjpegjs.js.mem"         || echo "SKIP openjpegjs.js.mem"
-          cp build/src/openjpegwasm.js           dist/ 2>/dev/null && echo "copied openjpegwasm.js"           || echo "SKIP openjpegwasm.js"
-          cp build/src/openjpegwasm.wasm         dist/ 2>/dev/null && echo "copied openjpegwasm.wasm"         || echo "SKIP openjpegwasm.wasm"
-          cp build/src/openjpegjs_decode.js      dist/ 2>/dev/null && echo "copied openjpegjs_decode.js"      || echo "SKIP openjpegjs_decode.js"
-          cp build/src/openjpegjs_decode.js.mem  dist/ 2>/dev/null && echo "copied openjpegjs_decode.js.mem"  || echo "SKIP openjpegjs_decode.js.mem"
-          cp build/src/openjpegwasm_decode.js    dist/ 2>/dev/null && echo "copied openjpegwasm_decode.js"    || echo "SKIP openjpegwasm_decode.js"
-          cp build/src/openjpegwasm_decode.wasm  dist/ 2>/dev/null && echo "copied openjpegwasm_decode.wasm"  || echo "SKIP openjpegwasm_decode.wasm"
+          echo "~~~ COPY artifacts from build/extern/openjpeg/bin/ ~~~"
+          cp ./build/extern/openjpeg/bin/openjpegjs.js            ./dist/
+          cp ./build/extern/openjpeg/bin/openjpegjs.js.mem        ./dist/ 2>/dev/null || true
+          cp ./build/extern/openjpeg/bin/openjpegwasm.js          ./dist/
+          cp ./build/extern/openjpeg/bin/openjpegwasm.wasm        ./dist/
+          cp ./build/extern/openjpeg/bin/openjpegjs_decode.js     ./dist/
+          cp ./build/extern/openjpeg/bin/openjpegjs_decode.js.mem ./dist/ 2>/dev/null || true
+          cp ./build/extern/openjpeg/bin/openjpegwasm_decode.js   ./dist/
+          cp ./build/extern/openjpeg/bin/openjpegwasm_decode.wasm ./dist/
 
           echo "~~~ DIST contents ~~~"
           ls -lh dist/
 
-          # Fail if the key decoder artifacts are missing
-          test -f dist/openjpegwasm_decode.js   || (echo "FATAL: openjpegwasm_decode.js not found" && exit 1)
-          test -f dist/openjpegwasm_decode.wasm || (echo "FATAL: openjpegwasm_decode.wasm not found" && exit 1)
+          test -f dist/openjpegwasm_decode.js   || (echo "FATAL: openjpegwasm_decode.js missing" && exit 1)
+          test -f dist/openjpegwasm_decode.wasm || (echo "FATAL: openjpegwasm_decode.wasm missing" && exit 1)
 
       - name: Upload dist as artifact
         uses: actions/upload-artifact@v4
@@ -82,10 +84,9 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          # Force-add dist/ even if it is in .gitignore
           git add -f packages/openjpeg/dist/
           if git diff --cached --quiet; then
-            echo "No changes to dist — skipping commit."
+            echo "No changes to dist - skipping commit."
           else
             git commit -m "ci: update openjpeg WASM dist artifacts [skip ci]"
             git push
