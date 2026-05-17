@@ -25,10 +25,11 @@ set_target_properties(
       -s MODULARIZE=1 \
       -s EXPORT_NAME=OpenJPEGJS \
       -s WASM=0 \
-      -s DISABLE_EXCEPTION_CATCHING=1 \
-      -s ASSERTIONS=0 \
+      -s DISABLE_EXCEPTION_CATCHING=0 \
+      -s ASSERTIONS=1 \
       -s NO_EXIT_RUNTIME=1 \
       -s ALLOW_MEMORY_GROWTH=1 \
+      -s ALLOW_TABLE_GROWTH=1 \
       -s INITIAL_MEMORY=50mb \
       -s FILESYSTEM=0 \
       -s EXPORTED_FUNCTIONS=[] \
@@ -61,8 +62,8 @@ set_target_properties(
          --bind \
          -s MODULARIZE=1 \
          -s EXPORT_NAME=OpenJPEGWASM \
-         -s DISABLE_EXCEPTION_CATCHING=1 \
-         -s ASSERTIONS=0 \
+         -s DISABLE_EXCEPTION_CATCHING=0 \
+         -s ASSERTIONS=1 \
          -s NO_EXIT_RUNTIME=1 \
          -s ALLOW_MEMORY_GROWTH=1 \
          -s ALLOW_TABLE_GROWTH=1 \
@@ -100,10 +101,11 @@ set_target_properties(
       -s MODULARIZE=1 \
       -s EXPORT_NAME=OpenJPEGJS \
       -s WASM=0 \
-      -s DISABLE_EXCEPTION_CATCHING=1 \
-      -s ASSERTIONS=0 \
+      -s DISABLE_EXCEPTION_CATCHING=0 \
+      -s ASSERTIONS=1 \
       -s NO_EXIT_RUNTIME=1 \
       -s ALLOW_MEMORY_GROWTH=1 \
+      -s ALLOW_TABLE_GROWTH=1 \
       -s INITIAL_MEMORY=50mb  \
       -s FILESYSTEM=0 \
       -s EXPORTED_FUNCTIONS=[] \
@@ -136,8 +138,8 @@ set_target_properties(
          --bind \
          -s MODULARIZE=1 \
          -s EXPORT_NAME=OpenJPEGWASM \
-         -s DISABLE_EXCEPTION_CATCHING=1 \
-         -s ASSERTIONS=0 \
+         -s DISABLE_EXCEPTION_CATCHING=0 \
+         -s ASSERTIONS=1 \
          -s NO_EXIT_RUNTIME=1 \
          -s ALLOW_MEMORY_GROWTH=1 \
          -s ALLOW_TABLE_GROWTH=1 \
@@ -146,4 +148,3 @@ set_target_properties(
          -s EXPORTED_FUNCTIONS=[] \
          -s EXPORTED_RUNTIME_METHODS=[ccall] \
       ")
-
