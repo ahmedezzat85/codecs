@@ -1,5 +1,6 @@
 // Copyright (c) Chris Hafey.
 // SPDX-License-Identifier: MIT
+// BUILD_VERSION: 2026-05-17-fix-table-growth
 
 
 #include "J2KDecoder.hpp"
