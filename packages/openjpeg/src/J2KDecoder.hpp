@@ -751,7 +751,6 @@ class J2KDecoder {
       if( ((OPJ_INT32*)encoded_.data())[0] == J2K_MAGIC_NUMBER ){
           l_codec = opj_create_decompress(OPJ_CODEC_J2K);
       }else{
-
           l_codec = opj_create_decompress(OPJ_CODEC_JP2);
       }
 
@@ -762,7 +761,7 @@ class J2KDecoder {
       opj_set_default_decoder_parameters(&parameters);
       parameters.cp_reduce = decompositionLevel;
       parameters.cp_layer = decodeLayer_;
-      //opj_set_decoded_resolution_factor(l_codec, 1);
+
       // set stream
       opj_buffer_info_t buffer_info;
       buffer_info.buf = encoded_.data();
@@ -796,6 +795,11 @@ class J2KDecoder {
           return;
       }
 
+      /* Finalize decompression — required before destroying codec/stream */
+      if (!opj_end_decompress(l_codec, l_stream)) {
+          printf("[WARNING] opj_end_decompress failed\n");
+      }
+
       if (image->color_space != OPJ_CLRSPC_SYCC
             && image->numcomps == 3 && image->comps[0].dx == image->comps[0].dy
             && image->comps[1].dx != 1) {
@@ -812,8 +816,12 @@ class J2KDecoder {
         color_esycc_to_rgb(image);
       }
 
-      frameInfo_.width = image->x1;
-      frameInfo_.height = image->y1;
+      // FIX: image->x1/y1 are absolute grid coordinates, not dimensions.
+      // Correct width = x1 - x0, correct height = y1 - y0.
+      // Using x1/y1 directly causes wrong buffer allocation for any image
+      // where the image origin (x0, y0) is non-zero (tiled, multi-frame, etc.)
+      frameInfo_.width = image->x1 - image->x0;
+      frameInfo_.height = image->y1 - image->y0;
       frameInfo_.componentCount = image->numcomps;
       frameInfo_.isSigned = image->comps[0].sgnd;
       frameInfo_.bitsPerSample = image->comps[0].prec;
@@ -821,7 +829,6 @@ class J2KDecoder {
       colorSpace_ = image->color_space;
       imageOffset_.x = image->x0;
       imageOffset_.y = image->y0;
-      //image->comps[0].factor always 0??
 
       opj_codestream_info_v2_t* cstr_info = opj_get_cstr_info(l_codec);  /* Codestream information structure */
       numLayers_ = cstr_info->m_default_tile_info.numlayers;
@@ -843,7 +850,6 @@ class J2KDecoder {
       decoded_.resize(destinationSize);
 
       // Convert from int32 to native size
-      int comp_num;
       for (int y = 0; y < sizeAtDecompositionLevel.height; y++)
       {
         size_t lineStartPixel = y * sizeAtDecompositionLevel.width;
