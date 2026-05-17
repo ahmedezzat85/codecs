@@ -1,0 +1,102 @@
+name: Build OpenJPEG WASM
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/openjpeg/src/**'
+      - 'packages/openjpeg/CMakeLists.txt'
+      - 'packages/openjpeg/build.sh'
+      - 'packages/openjpeg/extern/**'
+      - '.github/workflows/build-openjpeg.yml'
+  workflow_dispatch:
+
+jobs:
+  build-wasm:
+    name: Build WASM with Emscripten
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up Emscripten SDK
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.44
+          actions-cache-folder: '.emsdk-cache'
+
+      - name: Verify emcc
+        run: emcc --version
+
+      - name: Build openjpeg WASM
+        working-directory: packages/openjpeg
+        run: |
+          set +e
+          rm -rf build
+          mkdir -p build
+          mkdir -p dist
+
+          echo "~~~ CONFIGURE #1 ~~~"
+          (cd build && emcmake cmake .. || true)
+
+          echo "~~~ CONFIGURE #2 ~~~"
+          (cd build && emcmake cmake ..)
+
+          echo "~~~ MAKE ~~~"
+          (cd build && emmake make VERBOSE=1 -j4)
+
+          echo "~~~ COPY artifacts ~~~"
+          cp ./build/src/openjpegjs.js         ./dist/ 2>/dev/null || true
+          cp ./build/src/openjpegjs.js.mem      ./dist/ 2>/dev/null || true
+          cp ./build/src/openjpegwasm.js        ./dist/ 2>/dev/null || true
+          cp ./build/src/openjpegwasm.wasm      ./dist/ 2>/dev/null || true
+          cp ./build/src/openjpegjs_decode.js   ./dist/ 2>/dev/null || true
+          cp ./build/src/openjpegjs_decode.js.mem ./dist/ 2>/dev/null || true
+          cp ./build/src/openjpegwasm_decode.js  ./dist/ 2>/dev/null || true
+          cp ./build/src/openjpegwasm_decode.wasm ./dist/ 2>/dev/null || true
+
+          # Also try the alternate output path from original build.sh
+          cp ./build/extern/openjpeg/bin/openjpegwasm_decode.js   ./dist/ 2>/dev/null || true
+          cp ./build/extern/openjpeg/bin/openjpegwasm_decode.wasm ./dist/ 2>/dev/null || true
+          cp ./build/extern/openjpeg/bin/openjpegwasm.js          ./dist/ 2>/dev/null || true
+          cp ./build/extern/openjpeg/bin/openjpegwasm.wasm        ./dist/ 2>/dev/null || true
+
+          echo "~~~ DIST contents ~~~"
+          ls -lh ./dist/
+
+      - name: Upload dist as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openjpeg-wasm-dist
+          path: packages/openjpeg/dist/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Commit dist artifacts back to repo
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add packages/openjpeg/dist/
+          if git diff --cached --quiet; then
+            echo "No changes to dist — skipping commit."
+          else
+            git commit -m "ci: update openjpeg WASM dist artifacts [skip ci]"
+            git push
+          fi
+
+      - name: Trigger cornerstoneWADOImageLoader migration
+        if: success()
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.CROSS_REPO_PAT }}
+          repository: ahmedezzat85/cornerstoneWADOImageLoader
+          event-type: openjpeg-wasm-updated
+          client-payload: |
+            {
+              "codecs_sha": "${{ github.sha }}",
+              "run_id": "${{ github.run_id }}"
+            }
