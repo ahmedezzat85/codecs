@@ -795,7 +795,7 @@ class J2KDecoder {
           return;
       }
 
-      /* Finalize decompression — required before destroying codec/stream */
+      /* Finalize decompression before destroying codec/stream */
       if (!opj_end_decompress(l_codec, l_stream)) {
           printf("[WARNING] opj_end_decompress failed\n");
       }
@@ -816,10 +816,8 @@ class J2KDecoder {
         color_esycc_to_rgb(image);
       }
 
-      // FIX: image->x1/y1 are absolute grid coordinates, not dimensions.
+      // FIX: image->x1/y1 are absolute grid coordinates, not pixel dimensions.
       // Correct width = x1 - x0, correct height = y1 - y0.
-      // Using x1/y1 directly causes wrong buffer allocation for any image
-      // where the image origin (x0, y0) is non-zero (tiled, multi-frame, etc.)
       frameInfo_.width = image->x1 - image->x0;
       frameInfo_.height = image->y1 - image->y0;
       frameInfo_.componentCount = image->numcomps;
@@ -830,7 +828,7 @@ class J2KDecoder {
       imageOffset_.x = image->x0;
       imageOffset_.y = image->y0;
 
-      opj_codestream_info_v2_t* cstr_info = opj_get_cstr_info(l_codec);  /* Codestream information structure */
+      opj_codestream_info_v2_t* cstr_info = opj_get_cstr_info(l_codec);
       numLayers_ = cstr_info->m_default_tile_info.numlayers;
       progressionOrder_ = cstr_info->m_default_tile_info.prg;
       isReversible_ = cstr_info->m_default_tile_info.tccp_info->qmfbid == 1;
@@ -842,14 +840,11 @@ class J2KDecoder {
       tileSize_.height = cstr_info->tdy;
       numDecompositions_ = cstr_info->m_default_tile_info.tccp_info->numresolutions - 1;
       
-      // calculate the resolution at the requested decomposition level and
-      // allocate destination buffer
       Size sizeAtDecompositionLevel = calculateSizeAtDecompositionLevel(decompositionLevel);
       const size_t bytesPerPixel = (frameInfo_.bitsPerSample + 8 - 1) / 8;
       const size_t destinationSize = sizeAtDecompositionLevel.width * sizeAtDecompositionLevel.height * frameInfo_.componentCount * bytesPerPixel;
       decoded_.resize(destinationSize);
 
-      // Convert from int32 to native size
       for (int y = 0; y < sizeAtDecompositionLevel.height; y++)
       {
         size_t lineStartPixel = y * sizeAtDecompositionLevel.width;
@@ -878,9 +873,7 @@ class J2KDecoder {
             }
           }
         } else {
-            // Multi-component (RGB) image
             if(frameInfo_.bitsPerSample <= 8) {
-              // 8-bit RGB
               uint8_t* pOut = &decoded_[lineStart];
               for (size_t x = 0; x < sizeAtDecompositionLevel.width; x++) {
                 pOut[x*3+0] = image->comps[0].data[lineStartPixel + x];
@@ -888,7 +881,6 @@ class J2KDecoder {
                 pOut[x*3+2] = image->comps[2].data[lineStartPixel + x];
               }
             } else {
-              // 16-bit RGB
               if(frameInfo_.isSigned) {
                 short* pOut = (short*)&decoded_[lineStart];
                 for (size_t x = 0; x < sizeAtDecompositionLevel.width; x++) {
