@@ -65,6 +65,7 @@ set_target_properties(
          -s ASSERTIONS=0 \
          -s NO_EXIT_RUNTIME=1 \
          -s ALLOW_MEMORY_GROWTH=1 \
+         -s ALLOW_TABLE_GROWTH=1 \
 	       -s INITIAL_MEMORY=50mb \
          -s FILESYSTEM=0 \
          -s EXPORTED_FUNCTIONS=[] \
@@ -139,6 +140,7 @@ set_target_properties(
          -s ASSERTIONS=0 \
          -s NO_EXIT_RUNTIME=1 \
          -s ALLOW_MEMORY_GROWTH=1 \
+         -s ALLOW_TABLE_GROWTH=1 \
 	       -s INITIAL_MEMORY=50mb \
          -s FILESYSTEM=0 \
          -s EXPORTED_FUNCTIONS=[] \
