@@ -30,6 +30,7 @@ set_target_properties(
       -s NO_EXIT_RUNTIME=1 \
       -s ALLOW_MEMORY_GROWTH=1 \
       -s ALLOW_TABLE_GROWTH=1 \
+      -s EMULATE_FUNCTION_POINTER_CASTS=1 \
       -s INITIAL_MEMORY=50mb \
       -s FILESYSTEM=0 \
       -s EXPORTED_FUNCTIONS=[] \
@@ -67,6 +68,7 @@ set_target_properties(
          -s NO_EXIT_RUNTIME=1 \
          -s ALLOW_MEMORY_GROWTH=1 \
          -s ALLOW_TABLE_GROWTH=1 \
+         -s EMULATE_FUNCTION_POINTER_CASTS=1 \
 	       -s INITIAL_MEMORY=50mb \
          -s FILESYSTEM=0 \
          -s EXPORTED_FUNCTIONS=[] \
@@ -106,6 +108,7 @@ set_target_properties(
       -s NO_EXIT_RUNTIME=1 \
       -s ALLOW_MEMORY_GROWTH=1 \
       -s ALLOW_TABLE_GROWTH=1 \
+      -s EMULATE_FUNCTION_POINTER_CASTS=1 \
       -s INITIAL_MEMORY=50mb  \
       -s FILESYSTEM=0 \
       -s EXPORTED_FUNCTIONS=[] \
@@ -130,8 +133,6 @@ set_target_properties(
    include_directories("../extern/openjpeg/src/lib/openjp2" "../build/extern/openjpeg/src/lib/openjp2"
                     "../extern/openjpeg/src/bin/common" "../build/extern/openjpeg/src/bin/common")
    
-   # DEBUG BUILD: ASSERTIONS=2 + SAFE_HEAP + profiling function names
-   # so WASM traps show the exact failing function with a full stack trace.
    set_target_properties(
     openjpegwasm_decode
        PROPERTIES
@@ -140,12 +141,11 @@ set_target_properties(
          -s MODULARIZE=1 \
          -s EXPORT_NAME=OpenJPEGWASM \
          -s DISABLE_EXCEPTION_CATCHING=0 \
-         -s ASSERTIONS=2 \
-         -s SAFE_HEAP=1 \
-         --profiling-funcs \
+         -s ASSERTIONS=1 \
          -s NO_EXIT_RUNTIME=1 \
          -s ALLOW_MEMORY_GROWTH=1 \
          -s ALLOW_TABLE_GROWTH=1 \
+         -s EMULATE_FUNCTION_POINTER_CASTS=1 \
 	       -s INITIAL_MEMORY=50mb \
          -s FILESYSTEM=0 \
          -s EXPORTED_FUNCTIONS=[] \
