@@ -11,10 +11,16 @@ on:
       - '.github/workflows/build-openjpeg.yml'
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-wasm:
     name: Build WASM with Emscripten
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repo (with submodules)
@@ -22,6 +28,7 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Init git submodules
         working-directory: packages/openjpeg
@@ -84,12 +91,14 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Ensure push uses the authenticated GITHUB_TOKEN URL
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git add -f packages/openjpeg/dist/
           if git diff --cached --quiet; then
             echo "No changes to dist - skipping commit."
           else
             git commit -m "ci: update openjpeg WASM dist artifacts [skip ci]"
-            git push
+            git push origin main
           fi
 
       - name: Trigger cornerstoneWADOImageLoader migration
